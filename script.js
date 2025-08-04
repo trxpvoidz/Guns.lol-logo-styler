@@ -15,25 +15,48 @@ let direction = 1;
 let glowEnabled = true;
 let colorReplaceEnabled = true;
 
+let isGif = false;
+let gifInstance = null;
+
 img.crossOrigin = "anonymous";
 // Default image (your link)
 img.src = "https://raw.githubusercontent.com/trxpvoidz/assets-for-my-website/refs/heads/main/IMG_1867.jpeg?token=GHSAT0AAAAAADGWR4O3NYL5PKUPQ7DGXWEY2EQJAWQ";
 
 img.onload = () => {
-  canvas.width = img.width + 100;
-  canvas.height = img.height + 100;
-  animateGlow();
+  setupCanvas(img.width, img.height);
+  startAnimation();
 };
 
 fileInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = () => {
+  if (!file) return;
+
+  isGif = file.type === "image/gif";
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (isGif) {
+      if (gifInstance) {
+        gifInstance.stop();
+        gifInstance = null;
+      }
+      setupCanvas(null, null); // will reset size after GIF loads
+      gifler(reader.result).get((anim) => {
+        gifInstance = anim;
+        canvas.width = anim.width + 100;
+        canvas.height = anim.height + 100;
+        anim.animateInCanvas(canvas);
+        startAnimation();
+      });
+    } else {
+      if (gifInstance) {
+        gifInstance.stop();
+        gifInstance = null;
+      }
       img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  }
+    }
+  };
+  reader.readAsDataURL(file);
 });
 
 colorPicker.addEventListener("input", (e) => {
@@ -44,30 +67,28 @@ toggleGlow.addEventListener("change", () => {
 });
 enableColorReplace.addEventListener("change", () => {
   colorReplaceEnabled = enableColorReplace.checked;
-  drawImageWithColorReplace();
+  if (!isGif) drawImageWithColorReplace();
 });
-
 targetColorPicker.addEventListener("input", () => {
-  if (colorReplaceEnabled) drawImageWithColorReplace();
+  if (colorReplaceEnabled && !isGif) drawImageWithColorReplace();
 });
 replacementColorPicker.addEventListener("input", () => {
-  if (colorReplaceEnabled) drawImageWithColorReplace();
+  if (colorReplaceEnabled && !isGif) drawImageWithColorReplace();
 });
 
-function hexToRgb(hex) {
-  let bigint = parseInt(hex.slice(1), 16);
-  let r = (bigint >> 16) & 255;
-  let g = (bigint >> 8) & 255;
-  let b = bigint & 255;
-  return { r, g, b };
+function setupCanvas(width, height) {
+  if (width && height) {
+    canvas.width = width + 100;
+    canvas.height = height + 100;
+  }
 }
 
-function colorDistance(c1, c2) {
-  return Math.sqrt(
-    (c1.r - c2.r) ** 2 +
-      (c1.g - c2.g) ** 2 +
-      (c1.b - c2.b) ** 2
-  );
+function startAnimation() {
+  if (isGif) {
+    animateGifGlow();
+  } else {
+    animateGlow();
+  }
 }
 
 function animateGlow() {
@@ -90,9 +111,41 @@ function animateGlow() {
   }
 }
 
+function animateGifGlow() {
+  requestAnimationFrame(animateGifGlow);
+  // Clear with transparent background
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (gifInstance && gifInstance.ctx) {
+    // Draw current frame from gifler's internal canvas at offset
+    let frameCanvas = gifInstance.canvas;
+    if (!frameCanvas) return;
+
+    if (glowEnabled) {
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 30 + pulse;
+    } else {
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.drawImage(frameCanvas, 50, 50);
+
+    if (glowEnabled) {
+      pulse += direction;
+      if (pulse > 20 || pulse < 0) direction *= -1;
+    }
+  }
+}
+
+// Color replace does NOT work on GIFs currently (too complex to do real-time pixel edit on animated GIFs)
+// So color replace only applies to static images
+
 function drawImageWithColorReplace() {
+  // Only draw img for static images
+  if (!img.complete) return;
+
   if (!colorReplaceEnabled) {
-    // Just draw original image if disabled
     ctx.drawImage(img, 50, 50);
     return;
   }
@@ -132,7 +185,24 @@ function drawImageWithColorReplace() {
   ctx.drawImage(offCanvas, 50, 50);
 }
 
+function hexToRgb(hex) {
+  let bigint = parseInt(hex.slice(1), 16);
+  let r = (bigint >> 16) & 255;
+  let g = (bigint >> 8) & 255;
+  let b = bigint & 255;
+  return { r, g, b };
+}
+
+function colorDistance(c1, c2) {
+  return Math.sqrt(
+    (c1.r - c2.r) ** 2 +
+      (c1.g - c2.g) ** 2 +
+      (c1.b - c2.b) ** 2
+  );
+}
+
 saveBtn.addEventListener("click", () => {
+  // Save current canvas as PNG
   const link = document.createElement("a");
   link.download = "styled-logo.png";
   link.href = canvas.toDataURL("image/png");
