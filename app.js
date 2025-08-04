@@ -18,13 +18,12 @@ let isGif = false;
 let gifInstance = null;
 let gifFrameCanvas = null;
 
-const PADDING = 40; // extra space for glow
-
 img.crossOrigin = "anonymous";
 img.src = "https://raw.githubusercontent.com/trxpvoidz/assets-for-my-website/refs/heads/main/IMG_1867.jpeg";
 
 img.onload = () => {
-  resizeCanvasForGlow(img.width, img.height);
+  canvas.width = img.width;
+  canvas.height = img.height;
   animateStatic();
 };
 
@@ -41,7 +40,8 @@ fileInput.addEventListener("change", (e) => {
         gifFrameCanvas = document.createElement("canvas");
         gifFrameCanvas.width = anim.width;
         gifFrameCanvas.height = anim.height;
-        resizeCanvasForGlow(anim.width, anim.height);
+        canvas.width = anim.width;
+        canvas.height = anim.height;
 
         anim.animate(gifFrameCanvas.getContext("2d"));
         animateGIF();
@@ -50,7 +50,8 @@ fileInput.addEventListener("change", (e) => {
       const image = new Image();
       image.onload = () => {
         img = image;
-        resizeCanvasForGlow(img.width, img.height);
+        canvas.width = img.width;
+        canvas.height = img.height;
         animateStatic();
       };
       image.src = reader.result;
@@ -68,11 +69,6 @@ enableColorReplace.addEventListener("change", () => {
 targetColorPicker.addEventListener("input", () => {});
 replacementColorPicker.addEventListener("input", () => {});
 
-function resizeCanvasForGlow(width, height) {
-  canvas.width = width + PADDING * 2;
-  canvas.height = height + PADDING * 2;
-}
-
 function animateStatic() {
   function loop() {
     requestAnimationFrame(loop);
@@ -83,7 +79,7 @@ function animateStatic() {
     } else {
       ctx.shadowBlur = 0;
     }
-    drawImageWithColorReplaceAndPadding();
+    drawImageWithColorReplace();
   }
   loop();
 }
@@ -101,13 +97,18 @@ function animateGIF() {
       ctx.shadowBlur = 0;
     }
 
-    ctx.drawImage(gifFrameCanvas, PADDING, PADDING);
+    ctx.drawImage(gifFrameCanvas, 0, 0);
   }
   loop();
 }
 
-function drawImageWithColorReplaceAndPadding() {
+function drawImageWithColorReplace() {
   if (!img.complete) return;
+
+  if (!colorReplaceEnabled) {
+    ctx.drawImage(img, 0, 0);
+    return;
+  }
 
   const off = document.createElement("canvas");
   off.width = img.width;
@@ -115,25 +116,23 @@ function drawImageWithColorReplaceAndPadding() {
   const offCtx = off.getContext("2d");
   offCtx.drawImage(img, 0, 0);
 
-  if (colorReplaceEnabled) {
-    const imgData = offCtx.getImageData(0, 0, off.width, off.height);
-    const data = imgData.data;
-    const target = hexToRgb(targetColorPicker.value);
-    const repl = hexToRgb(replacementColorPicker.value);
-    const threshold = 100;
+  const imgData = offCtx.getImageData(0, 0, off.width, off.height);
+  const data = imgData.data;
+  const target = hexToRgb(targetColorPicker.value);
+  const repl = hexToRgb(replacementColorPicker.value);
+  const threshold = 100;
 
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b = data[i + 2];
-      if (colorDist({ r, g, b }, target) < threshold) {
-        data[i] = repl.r;
-        data[i + 1] = repl.g;
-        data[i + 2] = repl.b;
-      }
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    if (colorDist({ r, g, b }, target) < threshold) {
+      data[i] = repl.r;
+      data[i + 1] = repl.g;
+      data[i + 2] = repl.b;
     }
-    offCtx.putImageData(imgData, 0, 0);
   }
 
-  ctx.drawImage(off, PADDING, PADDING);
+  offCtx.putImageData(imgData, 0, 0);
+  ctx.drawImage(off, 0, 0);
 }
 
 function hexToRgb(hex) {
