@@ -67,16 +67,20 @@ function drawImageWithGlow() {
     const data = imgData.data;
     const target = hexToRgb(targetColor.value);
     const replacement = hexToRgb(replacementColor.value);
-    const threshold = 150;
+    const threshold = 200; // HIGHER threshold for better matching
 
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i], g = data[i + 1], b = data[i + 2];
-      if (colorDist({ r, g, b }, target) < threshold) {
-        data[i] = replacement.r;
-        data[i + 1] = replacement.g;
-        data[i + 2] = replacement.b;
+      // If pixel not transparent
+      if (data[i + 3] > 0) {
+        if (colorDistance({ r, g, b }, target) < threshold) {
+          data[i] = replacement.r;
+          data[i + 1] = replacement.g;
+          data[i + 2] = replacement.b;
+        }
       }
     }
+
     tempCtx.putImageData(imgData, 0, 0);
   }
 
@@ -93,22 +97,26 @@ function drawImageWithGlow() {
 }
 
 downloadBtn.addEventListener("click", () => {
-  drawImageWithGlow(); // ensure it's up-to-date
+  drawImageWithGlow();
   const link = document.createElement("a");
-  link.download = "glow-logo.png";
+  link.download = "styled-logo.png";
   link.href = canvas.toDataURL("image/png");
   link.click();
 });
 
 function hexToRgb(hex) {
   const int = parseInt(hex.replace("#", ""), 16);
-  return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
+  return {
+    r: (int >> 16) & 255,
+    g: (int >> 8) & 255,
+    b: int & 255
+  };
 }
 
-function colorDist(c1, c2) {
+function colorDistance(c1, c2) {
   return Math.sqrt(
-    Math.pow(c1.r - c2.r, 2) +
-    Math.pow(c1.g - c2.g, 2) +
-    Math.pow(c1.b - c2.b, 2)
+    (c1.r - c2.r) ** 2 +
+    (c1.g - c2.g) ** 2 +
+    (c1.b - c2.b) ** 2
   );
 }
