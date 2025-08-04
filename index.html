@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>guns.lol Logo Styler</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>guns.lol Logo Styler with Color Replace</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>guns.lol Logo Styler</h1>
-    <input type="file" id="logoUpload" accept="image/*"><br><br>
+    <h1>guns.lol Logo Styler with Color Replace</h1>
 
-    <label><input type="checkbox" id="toggleGlow" checked> Enable Glow</label><br><br>
-    <input type="color" id="colorPicker" value="#ffffff"><br><br>
+    <input type="file" id="logoUpload" accept="image/*" /><br /><br />
 
-    <label><input type="checkbox" id="solidColorToggle"> Solid Color Overlay</label><br><br>
-    <input type="color" id="solidColorPicker" value="#ffffff"><br><br>
+    <label><input type="checkbox" id="toggleGlow" checked /> Enable Glow</label><br /><br />
+    <label>Glow Color: <input type="color" id="colorPicker" value="#ffffff" /></label><br /><br />
+
+    <label>Target Color to Replace: <input type="color" id="targetColor" value="#0000ff" /></label><br /><br />
+    <label>Replacement Color: <input type="color" id="replacementColor" value="#ff0000" /></label><br /><br />
 
     <button id="saveBtn" class="white-button">Save as Image</button>
-    <div class="preview" id="previewContainer">
+
+    <div class="preview">
       <canvas id="canvas"></canvas>
     </div>
   </div>
