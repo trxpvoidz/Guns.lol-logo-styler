@@ -1,69 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Logo Styler</title>
-  <style>
-    body {
-      background: #111;
-      color: white;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1em;
-      margin-top: 2em;
-    }
-    canvas {
-      border: 1px solid #555;
-      background: white;
-    }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-    input[type="color"],
-    input[type="file"],
-    button {
-      padding: 5px;
-    }
-    label {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 0.8em;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Logo Styler</title>
+<style>
+  body {
+    background: #111;
+    color: white;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    margin-top: 2em;
+  }
+  canvas {
+    border: 1px solid #555;
+    background: transparent;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  input[type="color"],
+  input[type="file"],
+  button {
+    padding: 5px;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.8em;
+  }
+</style>
 </head>
 <body>
   <h1>Glow Logo Styler</h1>
   <div class="controls">
-    <label>
-      Upload Image
-      <input type="file" id="imgInput" accept="image/*">
-    </label>
-    <label>
-      Enable Glow
-      <input type="checkbox" id="enableGlow" checked>
-    </label>
-    <label>
-      Glow Color
-      <input type="color" id="glowColor" value="#00ffff">
-    </label>
-    <label>
-      Enable Replace
-      <input type="checkbox" id="enableReplace">
-    </label>
-    <label>
-      Target Color
-      <input type="color" id="targetColor" value="#ffffff">
-    </label>
-    <label>
-      Replacement
-      <input type="color" id="replacementColor" value="#ff0000">
-    </label>
+    <label>Upload Image <input type="file" id="imgInput" accept="image/*"></label>
+    <label>Enable Glow <input type="checkbox" id="enableGlow" checked></label>
+    <label>Glow Color <input type="color" id="glowColor" value="#00ffff"></label>
+    <label>Enable Replace <input type="checkbox" id="enableReplace"></label>
+    <label>Target Color <input type="color" id="targetColor" value="#ffffff"></label>
+    <label>Replacement Color <input type="color" id="replacementColor" value="#ff0000"></label>
     <button id="downloadBtn">Download</button>
   </div>
   <canvas id="canvas" width="512" height="512"></canvas>
