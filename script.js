@@ -1,8 +1,8 @@
 const fileInput = document.getElementById("logoUpload");
 const colorPicker = document.getElementById("colorPicker");
 const toggleGlow = document.getElementById("toggleGlow");
-const solidColorToggle = document.getElementById("solidColorToggle");
-const solidColorPicker = document.getElementById("solidColorPicker");
+const targetColorPicker = document.getElementById("targetColor");
+const replacementColorPicker = document.getElementById("replacementColor");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const saveBtn = document.getElementById("saveBtn");
@@ -14,6 +14,7 @@ let direction = 1;
 let glowEnabled = true;
 
 img.crossOrigin = "anonymous";
+// Default image (your link)
 img.src = "https://raw.githubusercontent.com/trxpvoidz/assets-for-my-website/refs/heads/main/IMG_1867.jpeg?token=GHSAT0AAAAAADGWR4O3NYL5PKUPQ7DGXWEY2EQJAWQ";
 
 img.onload = () => {
@@ -36,9 +37,36 @@ fileInput.addEventListener("change", (e) => {
 colorPicker.addEventListener("input", (e) => {
   glowColor = e.target.value;
 });
+
 toggleGlow.addEventListener("change", () => {
   glowEnabled = toggleGlow.checked;
 });
+
+targetColorPicker.addEventListener("input", () => {
+  // redraw on color change
+  drawImageWithColorReplace();
+});
+replacementColorPicker.addEventListener("input", () => {
+  drawImageWithColorReplace();
+});
+
+function hexToRgb(hex) {
+  // Convert #rrggbb to {r,g,b}
+  let bigint = parseInt(hex.slice(1), 16);
+  let r = (bigint >> 16) & 255;
+  let g = (bigint >> 8) & 255;
+  let b = bigint & 255;
+  return { r, g, b };
+}
+
+function colorDistance(c1, c2) {
+  // Euclidean distance between colors
+  return Math.sqrt(
+    (c1.r - c2.r) ** 2 +
+    (c1.g - c2.g) ** 2 +
+    (c1.b - c2.b) ** 2
+  );
+}
 
 function animateGlow() {
   requestAnimationFrame(animateGlow);
@@ -52,20 +80,54 @@ function animateGlow() {
     ctx.shadowBlur = 0;
   }
 
-  ctx.drawImage(img, 50, 50);
-
-  if (solidColorToggle.checked) {
-    const color = solidColorPicker.value;
-    ctx.globalCompositeOperation = "source-in";
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalCompositeOperation = "source-over";
-  }
+  drawImageWithColorReplace();
 
   if (glowEnabled) {
     pulse += direction;
     if (pulse > 20 || pulse < 0) direction *= -1;
   }
+}
+
+function drawImageWithColorReplace() {
+  // Draw the image at (50,50) onto an offscreen canvas to get pixel data
+  const offCanvas = document.createElement("canvas");
+  const offCtx = offCanvas.getContext("2d");
+  offCanvas.width = img.width;
+  offCanvas.height = img.height;
+  offCtx.clearRect(0, 0, offCanvas.width, offCanvas.height);
+  offCtx.drawImage(img, 0, 0);
+
+  // Get pixels
+  let imageData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+  let data = imageData.data;
+
+  let targetRgb = hexToRgb(targetColorPicker.value);
+  let replacementRgb = hexToRgb(replacementColorPicker.value);
+
+  // Threshold for color matching (tweakable)
+  const threshold = 100;
+
+  // Loop pixels and replace colors close to target
+  for (let i = 0; i < data.length; i += 4) {
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+    let a = data[i + 3];
+    if (a === 0) continue; // skip transparent pixels
+
+    let dist = colorDistance({ r, g, b }, targetRgb);
+    if (dist < threshold) {
+      // Replace with replacement color but keep original alpha
+      data[i] = replacementRgb.r;
+      data[i + 1] = replacementRgb.g;
+      data[i + 2] = replacementRgb.b;
+    }
+  }
+
+  offCtx.putImageData(imageData, 0, 0);
+
+  // Draw processed image onto main canvas with glow offset
+  ctx.drawImage(offCanvas, 50, 50);
 }
 
 saveBtn.addEventListener("click", () => {
