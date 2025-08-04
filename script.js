@@ -1,6 +1,8 @@
 const fileInput = document.getElementById("logoUpload");
 const colorPicker = document.getElementById("colorPicker");
 const toggleGlow = document.getElementById("toggleGlow");
+const solidColorToggle = document.getElementById("solidColorToggle");
+const solidColorPicker = document.getElementById("solidColorPicker");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const saveBtn = document.getElementById("saveBtn");
@@ -34,7 +36,6 @@ fileInput.addEventListener("change", (e) => {
 colorPicker.addEventListener("input", (e) => {
   glowColor = e.target.value;
 });
-
 toggleGlow.addEventListener("change", () => {
   glowEnabled = toggleGlow.checked;
 });
@@ -52,6 +53,14 @@ function animateGlow() {
   }
 
   ctx.drawImage(img, 50, 50);
+
+  if (solidColorToggle.checked) {
+    const color = solidColorPicker.value;
+    ctx.globalCompositeOperation = "source-in";
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = "source-over";
+  }
 
   if (glowEnabled) {
     pulse += direction;
