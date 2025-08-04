@@ -45,11 +45,10 @@ function drawImageWithGlow() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const glowEnabled = enableGlow.checked;
-  const colorReplaceEnabled = enableReplace.checked;
+  const replaceEnabled = enableReplace.checked;
 
   const glowBuffer = glowEnabled ? 90 : 0;
   const availableSize = MAX_SIZE - glowBuffer;
-
   const scale = Math.min(availableSize / img.width, availableSize / img.height);
   const drawW = img.width * scale;
   const drawH = img.height * scale;
@@ -62,22 +61,23 @@ function drawImageWithGlow() {
   const tempCtx = temp.getContext("2d");
   tempCtx.drawImage(img, 0, 0, drawW, drawH);
 
-  if (colorReplaceEnabled) {
+  if (replaceEnabled) {
     const imgData = tempCtx.getImageData(0, 0, drawW, drawH);
     const data = imgData.data;
     const target = hexToRgb(targetColor.value);
     const replacement = hexToRgb(replacementColor.value);
-    const threshold = 200; // HIGHER threshold for better matching
+    const threshold = 150;
 
     for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b = data[i + 2];
-      // If pixel not transparent
-      if (data[i + 3] > 0) {
-        if (colorDistance({ r, g, b }, target) < threshold) {
-          data[i] = replacement.r;
-          data[i + 1] = replacement.g;
-          data[i + 2] = replacement.b;
-        }
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+
+      if (a > 0 && colorDistance({ r, g, b }, target) < threshold) {
+        data[i] = replacement.r;
+        data[i + 1] = replacement.g;
+        data[i + 2] = replacement.b;
       }
     }
 
@@ -86,7 +86,7 @@ function drawImageWithGlow() {
 
   if (glowEnabled) {
     ctx.shadowColor = glowColor.value;
-    ctx.shadowBlur = 45;
+    ctx.shadowBlur = 40;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
   } else {
@@ -99,13 +99,13 @@ function drawImageWithGlow() {
 downloadBtn.addEventListener("click", () => {
   drawImageWithGlow();
   const link = document.createElement("a");
-  link.download = "styled-logo.png";
+  link.download = "logo.png";
   link.href = canvas.toDataURL("image/png");
   link.click();
 });
 
 function hexToRgb(hex) {
-  const int = parseInt(hex.replace("#", ""), 16);
+  const int = parseInt(hex.slice(1), 16);
   return {
     r: (int >> 16) & 255,
     g: (int >> 8) & 255,
