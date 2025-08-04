@@ -9,6 +9,10 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const saveBtn = document.getElementById("saveBtn");
 
+const MAX_SIZE = 512;
+canvas.width = MAX_SIZE;
+canvas.height = MAX_SIZE;
+
 let img = new Image();
 let glowColor = "#ffffff";
 let glowSize = 20;
@@ -18,13 +22,11 @@ let isGif = false;
 let gifInstance = null;
 let gifFrameCanvas = null;
 
-const PADDING = 40; // extra space for glow
-
 img.crossOrigin = "anonymous";
 img.src = "https://raw.githubusercontent.com/trxpvoidz/assets-for-my-website/refs/heads/main/IMG_1867.jpeg";
 
 img.onload = () => {
-  resizeCanvasForGlow(img.width, img.height);
+  isGif = false;
   animateStatic();
 };
 
@@ -41,8 +43,6 @@ fileInput.addEventListener("change", (e) => {
         gifFrameCanvas = document.createElement("canvas");
         gifFrameCanvas.width = anim.width;
         gifFrameCanvas.height = anim.height;
-        resizeCanvasForGlow(anim.width, anim.height);
-
         anim.animate(gifFrameCanvas.getContext("2d"));
         animateGIF();
       });
@@ -50,7 +50,7 @@ fileInput.addEventListener("change", (e) => {
       const image = new Image();
       image.onload = () => {
         img = image;
-        resizeCanvasForGlow(img.width, img.height);
+        isGif = false;
         animateStatic();
       };
       image.src = reader.result;
@@ -65,25 +65,19 @@ toggleGlow.addEventListener("change", () => glowEnabled = toggleGlow.checked);
 enableColorReplace.addEventListener("change", () => {
   colorReplaceEnabled = enableColorReplace.checked;
 });
+
 targetColorPicker.addEventListener("input", () => {});
 replacementColorPicker.addEventListener("input", () => {});
-
-function resizeCanvasForGlow(width, height) {
-  canvas.width = width + PADDING * 2;
-  canvas.height = height + PADDING * 2;
-}
 
 function animateStatic() {
   function loop() {
     requestAnimationFrame(loop);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (glowEnabled) {
-      ctx.shadowColor = glowColor;
-      ctx.shadowBlur = glowSize;
-    } else {
-      ctx.shadowBlur = 0;
-    }
-    drawImageWithColorReplaceAndPadding();
+
+    ctx.shadowColor = glowEnabled ? glowColor : "transparent";
+    ctx.shadowBlur = glowEnabled ? glowSize : 0;
+
+    drawImageFittingWithGlow();
   }
   loop();
 }
@@ -94,46 +88,65 @@ function animateGIF() {
     if (!gifFrameCanvas) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (glowEnabled) {
-      ctx.shadowColor = glowColor;
-      ctx.shadowBlur = glowSize;
-    } else {
-      ctx.shadowBlur = 0;
-    }
+    ctx.shadowColor = glowEnabled ? glowColor : "transparent";
+    ctx.shadowBlur = glowEnabled ? glowSize : 0;
 
-    ctx.drawImage(gifFrameCanvas, PADDING, PADDING);
+    drawGifFrameFittingWithGlow(gifFrameCanvas);
   }
   loop();
 }
 
-function drawImageWithColorReplaceAndPadding() {
+function drawImageFittingWithGlow() {
   if (!img.complete) return;
 
-  const off = document.createElement("canvas");
-  off.width = img.width;
-  off.height = img.height;
-  const offCtx = off.getContext("2d");
-  offCtx.drawImage(img, 0, 0);
+  const buffer = glowEnabled ? glowSize * 2 : 0;
+  const availableSize = MAX_SIZE - buffer;
+
+  const scale = Math.min(availableSize / img.width, availableSize / img.height);
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+  const offsetX = (MAX_SIZE - drawW) / 2;
+  const offsetY = (MAX_SIZE - drawH) / 2;
+
+  const temp = document.createElement("canvas");
+  temp.width = drawW;
+  temp.height = drawH;
+  const tempCtx = temp.getContext("2d");
+  tempCtx.drawImage(img, 0, 0, drawW, drawH);
 
   if (colorReplaceEnabled) {
-    const imgData = offCtx.getImageData(0, 0, off.width, off.height);
+    const imgData = tempCtx.getImageData(0, 0, drawW, drawH);
     const data = imgData.data;
     const target = hexToRgb(targetColorPicker.value);
-    const repl = hexToRgb(replacementColorPicker.value);
+    const replacement = hexToRgb(replacementColorPicker.value);
     const threshold = 100;
 
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i], g = data[i + 1], b = data[i + 2];
       if (colorDist({ r, g, b }, target) < threshold) {
-        data[i] = repl.r;
-        data[i + 1] = repl.g;
-        data[i + 2] = repl.b;
+        data[i] = replacement.r;
+        data[i + 1] = replacement.g;
+        data[i + 2] = replacement.b;
       }
     }
-    offCtx.putImageData(imgData, 0, 0);
+    tempCtx.putImageData(imgData, 0, 0);
   }
 
-  ctx.drawImage(off, PADDING, PADDING);
+  ctx.drawImage(temp, offsetX, offsetY);
+}
+
+function drawGifFrameFittingWithGlow(frameCanvas) {
+  const frame = frameCanvas;
+  const buffer = glowEnabled ? glowSize * 2 : 0;
+  const availableSize = MAX_SIZE - buffer;
+
+  const scale = Math.min(availableSize / frame.width, availableSize / frame.height);
+  const drawW = frame.width * scale;
+  const drawH = frame.height * scale;
+  const offsetX = (MAX_SIZE - drawW) / 2;
+  const offsetY = (MAX_SIZE - drawH) / 2;
+
+  ctx.drawImage(frame, offsetX, offsetY, drawW, drawH);
 }
 
 function hexToRgb(hex) {
