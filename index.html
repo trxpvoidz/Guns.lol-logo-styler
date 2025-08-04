@@ -9,11 +9,13 @@
   <div class="container">
     <h1>guns.lol Logo Styler</h1>
     <input type="file" id="logoUpload" accept="image/*"><br><br>
-    <label>
-      <input type="checkbox" id="toggleGlow" checked>
-      Enable Glow
-    </label><br><br>
+
+    <label><input type="checkbox" id="toggleGlow" checked> Enable Glow</label><br><br>
     <input type="color" id="colorPicker" value="#ffffff"><br><br>
+
+    <label><input type="checkbox" id="solidColorToggle"> Solid Color Overlay</label><br><br>
+    <input type="color" id="solidColorPicker" value="#ffffff"><br><br>
+
     <button id="saveBtn" class="white-button">Save as Image</button>
     <div class="preview" id="previewContainer">
       <canvas id="canvas"></canvas>
