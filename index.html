@@ -2,54 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>guns.lol Logo Styler</title>
+  <title>Logo Styler</title>
   <style>
     body {
-      font-family: sans-serif;
       background: #111;
       color: white;
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      gap: 1em;
+      margin-top: 2em;
     }
     canvas {
-      background: transparent;
-      image-rendering: pixelated;
-      margin-top: 10px;
+      border: 1px solid #555;
+      background: white;
     }
     .controls {
-      margin-top: 10px;
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-width: 500px;
-      width: 100%;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    input[type="color"],
+    input[type="file"],
+    button {
+      padding: 5px;
     }
     label {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-    }
-    input[type="file"], input[type="color"], button {
-      margin-left: 10px;
+      font-size: 0.8em;
     }
   </style>
 </head>
 <body>
-  <h1>guns.lol Logo Styler</h1>
+  <h1>Glow Logo Styler</h1>
   <div class="controls">
-    <label>Upload Image/GIF: <input type="file" id="imgInput" accept="image/*" /></label>
-    <label><input type="checkbox" id="enableGlow" checked /> Enable Glow</label>
-    <label>Glow Color: <input type="color" id="glowColor" value="#ffffff" /></label>
-    <label><input type="checkbox" id="enableReplace" /> Replace Color</label>
-    <label>Target Color: <input type="color" id="targetColor" value="#ffffff" /></label>
-    <label>Replacement Color: <input type="color" id="replacementColor" value="#ff0000" /></label>
-    <button id="downloadBtn">Download Image</button>
+    <label>
+      Upload Image
+      <input type="file" id="imgInput" accept="image/*">
+    </label>
+    <label>
+      Enable Glow
+      <input type="checkbox" id="enableGlow" checked>
+    </label>
+    <label>
+      Glow Color
+      <input type="color" id="glowColor" value="#00ffff">
+    </label>
+    <label>
+      Enable Replace
+      <input type="checkbox" id="enableReplace">
+    </label>
+    <label>
+      Target Color
+      <input type="color" id="targetColor" value="#ffffff">
+    </label>
+    <label>
+      Replacement
+      <input type="color" id="replacementColor" value="#ff0000">
+    </label>
+    <button id="downloadBtn">Download</button>
   </div>
   <canvas id="canvas" width="512" height="512"></canvas>
 
-  <script src="https://cdn.jsdelivr.net/npm/gifuct-js@1.0.2/dist/gifuct.min.js"></script>
+  <script src="https://unpkg.com/gifuct-js/dist/gifuct.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
