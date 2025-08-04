@@ -3,6 +3,7 @@ const ctx = canvas.getContext("2d");
 const imgInput = document.getElementById("imgInput");
 const downloadBtn = document.getElementById("downloadBtn");
 const enableGlow = document.getElementById("enableGlow");
+const glowColor = document.getElementById("glowColor");
 const enableReplace = document.getElementById("enableReplace");
 const targetColor = document.getElementById("targetColor");
 const replacementColor = document.getElementById("replacementColor");
@@ -15,6 +16,7 @@ imgInput.addEventListener("change", async (e) => {
   if (!file) return;
 
   const url = URL.createObjectURL(file);
+
   if (file.type === "image/gif") {
     const buffer = await file.arrayBuffer();
     const gif = new window.GIFuctJS.Gif(new Uint8Array(buffer));
@@ -65,7 +67,7 @@ function drawImageWithGlow() {
     const data = imgData.data;
     const target = hexToRgb(targetColor.value);
     const replacement = hexToRgb(replacementColor.value);
-    const threshold = 100;
+    const threshold = 150;
 
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i], g = data[i + 1], b = data[i + 2];
@@ -79,7 +81,7 @@ function drawImageWithGlow() {
   }
 
   if (glowEnabled) {
-    ctx.shadowColor = "#ffffff";
+    ctx.shadowColor = glowColor.value;
     ctx.shadowBlur = 45;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
@@ -91,10 +93,10 @@ function drawImageWithGlow() {
 }
 
 downloadBtn.addEventListener("click", () => {
-  drawImageWithGlow(); // ensure it's drawn
+  drawImageWithGlow(); // ensure it's up-to-date
   const link = document.createElement("a");
   link.download = "glow-logo.png";
-  link.href = canvas.toDataURL();
+  link.href = canvas.toDataURL("image/png");
   link.click();
 });
 
@@ -109,12 +111,4 @@ function colorDist(c1, c2) {
     Math.pow(c1.g - c2.g, 2) +
     Math.pow(c1.b - c2.b, 2)
   );
-}
-
-// Load gifuct.js from CDN if not already loaded
-if (!window.GIFuctJS) {
-  const script = document.createElement("script");
-  script.src = "https://cdn.jsdelivr.net/npm/gifuct-js@1.0.2/dist/gifuct.min.js";
-  script.onload = () => console.log("GIFuctJS loaded");
-  document.body.appendChild(script);
 }
