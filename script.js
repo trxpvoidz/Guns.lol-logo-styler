@@ -15,14 +15,12 @@ imgInput.addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const url = URL.createObjectURL(file);
-
   if (file.type === "image/gif") {
     const buffer = await file.arrayBuffer();
     const gif = new window.GIFuctJS.Gif(new Uint8Array(buffer));
     const frames = gif.decompressFrames(true);
     const frame = frames[0];
-    const tmp = new ImageData(
+    const imgData = new ImageData(
       new Uint8ClampedArray(frame.patch),
       frame.dims.width,
       frame.dims.height
@@ -30,93 +28,98 @@ imgInput.addEventListener("change", async (e) => {
     const tmpCanvas = document.createElement("canvas");
     tmpCanvas.width = frame.dims.width;
     tmpCanvas.height = frame.dims.height;
-    tmpCanvas.getContext("2d").putImageData(tmp, 0, 0);
+    tmpCanvas.getContext("2d").putImageData(imgData, 0, 0);
     img.src = tmpCanvas.toDataURL();
   } else {
-    img.src = url;
+    img.src = URL.createObjectURL(file);
   }
 });
 
 img.onload = () => {
-  drawImageWithGlow();
+  draw();
 };
 
-function drawImageWithGlow() {
+function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Calculate scale and position
   const glowEnabled = enableGlow.checked;
   const replaceEnabled = enableReplace.checked;
+  const glowPadding = glowEnabled ? 80 : 0;
+  const availableSize = MAX_SIZE - glowPadding;
 
-  const glowBuffer = glowEnabled ? 90 : 0;
-  const availableSize = MAX_SIZE - glowBuffer;
   const scale = Math.min(availableSize / img.width, availableSize / img.height);
-  const drawW = img.width * scale;
-  const drawH = img.height * scale;
-  const offsetX = (MAX_SIZE - drawW) / 2;
-  const offsetY = (MAX_SIZE - drawH) / 2;
+  const w = img.width * scale;
+  const h = img.height * scale;
+  const x = (MAX_SIZE - w) / 2;
+  const y = (MAX_SIZE - h) / 2;
 
-  const temp = document.createElement("canvas");
-  temp.width = drawW;
-  temp.height = drawH;
-  const tempCtx = temp.getContext("2d");
-  tempCtx.drawImage(img, 0, 0, drawW, drawH);
+  // Draw to temp canvas for color replacement
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = w;
+  tempCanvas.height = h;
+  const tempCtx = tempCanvas.getContext("2d");
+  tempCtx.drawImage(img, 0, 0, w, h);
 
   if (replaceEnabled) {
-    const imgData = tempCtx.getImageData(0, 0, drawW, drawH);
-    const data = imgData.data;
+    const imageData = tempCtx.getImageData(0, 0, w, h);
+    const data = imageData.data;
     const target = hexToRgb(targetColor.value);
     const replacement = hexToRgb(replacementColor.value);
-    const threshold = 150;
+    const threshold = 200;
 
     for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const a = data[i + 3];
-
-      if (a > 0 && colorDistance({ r, g, b }, target) < threshold) {
+      const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+      if (a > 0 && colorDist({ r, g, b }, target) < threshold) {
         data[i] = replacement.r;
         data[i + 1] = replacement.g;
         data[i + 2] = replacement.b;
       }
     }
-
-    tempCtx.putImageData(imgData, 0, 0);
+    tempCtx.putImageData(imageData, 0, 0);
   }
 
+  // Set glow if enabled
   if (glowEnabled) {
     ctx.shadowColor = glowColor.value;
     ctx.shadowBlur = 40;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
   } else {
+    ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
   }
 
-  ctx.drawImage(temp, offsetX, offsetY);
+  // Now draw the image WITH glow applied on canvas context
+  ctx.drawImage(tempCanvas, x, y);
 }
 
-downloadBtn.addEventListener("click", () => {
-  drawImageWithGlow();
+downloadBtn.onclick = () => {
+  draw();
   const link = document.createElement("a");
-  link.download = "logo.png";
+  link.download = "styled-logo.png";
   link.href = canvas.toDataURL("image/png");
   link.click();
-});
+};
 
 function hexToRgb(hex) {
-  const int = parseInt(hex.slice(1), 16);
+  const bigint = parseInt(hex.slice(1), 16);
   return {
-    r: (int >> 16) & 255,
-    g: (int >> 8) & 255,
-    b: int & 255
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255
   };
 }
 
-function colorDistance(c1, c2) {
+function colorDist(c1, c2) {
   return Math.sqrt(
     (c1.r - c2.r) ** 2 +
     (c1.g - c2.g) ** 2 +
     (c1.b - c2.b) ** 2
   );
 }
+
+// Redraw on inputs change
+[enableGlow, glowColor, enableReplace, targetColor, replacementColor].forEach(el => {
+  el.addEventListener("input", draw);
+});
