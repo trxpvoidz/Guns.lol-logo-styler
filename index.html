@@ -1,56 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>guns.lol Glow Logo Tool</title>
+  <meta charset="UTF-8" />
+  <title>guns.lol Logo Styler</title>
   <style>
     body {
-      background: #111;
-      color: #fff;
       font-family: sans-serif;
-      text-align: center;
+      background: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       padding: 20px;
     }
     canvas {
       background: transparent;
-      margin-top: 20px;
-      border: 1px dashed #333;
+      image-rendering: pixelated;
+      margin-top: 10px;
     }
-    input[type="file"],
-    input[type="color"],
-    label,
-    button {
-      margin: 10px;
-      padding: 5px;
-      font-size: 14px;
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 500px;
+      width: 100%;
+    }
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    input[type="file"], input[type="color"], button {
+      margin-left: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>guns.lol Style Logo Glow</h1>
-  <input type="file" id="imgInput" accept="image/*"><br>
-  
-  <label>
-    <input type="checkbox" id="enableGlow" checked>
-    Enable Glow
-  </label>
-
-  <label>
-    <input type="checkbox" id="enableReplace">
-    Replace Color
-  </label><br>
-
-  <label>
-    Target: <input type="color" id="targetColor" value="#ffffff">
-  </label>
-  <label>
-    Replace With: <input type="color" id="replacementColor" value="#ff0000">
-  </label><br>
-
-  <button id="downloadBtn">Download Image</button><br>
-
+  <h1>guns.lol Logo Styler</h1>
+  <div class="controls">
+    <label>Upload Image/GIF: <input type="file" id="imgInput" accept="image/*" /></label>
+    <label><input type="checkbox" id="enableGlow" checked /> Enable Glow</label>
+    <label>Glow Color: <input type="color" id="glowColor" value="#ffffff" /></label>
+    <label><input type="checkbox" id="enableReplace" /> Replace Color</label>
+    <label>Target Color: <input type="color" id="targetColor" value="#ffffff" /></label>
+    <label>Replacement Color: <input type="color" id="replacementColor" value="#ff0000" /></label>
+    <button id="downloadBtn">Download Image</button>
+  </div>
   <canvas id="canvas" width="512" height="512"></canvas>
 
+  <script src="https://cdn.jsdelivr.net/npm/gifuct-js@1.0.2/dist/gifuct.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
