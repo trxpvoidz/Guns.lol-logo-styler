@@ -35,6 +35,46 @@
     align-items: center;
     font-size: 0.8em;
   }
+
+  /* Custom audio player styles */
+  .audio-player {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #222;
+    padding: 10px 15px;
+    border-radius: 40px;
+    width: fit-content;
+    box-shadow: 0 0 8px #00ff99aa;
+  }
+
+  .play-btn, .shuffle-btn {
+    cursor: pointer;
+    background: #00ff99;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #111;
+    font-size: 20px;
+    transition: background 0.3s;
+  }
+
+  .play-btn:hover, .shuffle-btn:hover {
+    background: #00cc77;
+  }
+
+  .play-btn svg {
+    pointer-events: none;
+  }
+
+  .shuffle-btn {
+    font-size: 22px;
+    user-select: none;
+  }
 </style>
 </head>
 <body>
@@ -50,10 +90,87 @@
   </div>
   <canvas id="canvas" width="512" height="512"></canvas>
 
-  <audio id="audioPlayer" controls></audio>
-  <script src="audio-shuffle.js"></script>
+  <!-- Custom audio player UI -->
+  <div class="audio-player">
+    <button id="playPauseBtn" class="play-btn" aria-label="Play/Pause">
+      <svg id="playIcon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg>
+      <svg id="pauseIcon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <rect x="6" y="4" width="4" height="16"></rect>
+        <rect x="14" y="4" width="4" height="16"></rect>
+      </svg>
+    </button>
+    <button id="shuffleBtn" class="shuffle-btn" title="Shuffle">🔀</button>
+  </div>
+  <audio id="audioPlayer"></audio>
+
   <script src="https://unpkg.com/gifuct-js/dist/gifuct.min.js"></script>
   <script src="script.js"></script>
   <script src="oneko.js"></script>
+
+  <!-- Inline audio-shuffle.js script -->
+  <script>
+    const audioFiles = [
+      { src: "audio/audio1.mp3", name: "Track 1" },
+      { src: "audio/audio2.mp3", name: "Track 2" },
+      { src: "audio/audio3.mp3", name: "Track 3" },
+      { src: "audio/audio4.mp3", name: "Track 4" },
+    ];
+
+    const audioPlayer = document.getElementById("audioPlayer");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const playIcon = document.getElementById("playIcon");
+    const pauseIcon = document.getElementById("pauseIcon");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+
+    function getRandomIndex(excludeIndex) {
+      let index;
+      do {
+        index = Math.floor(Math.random() * audioFiles.length);
+      } while (index === excludeIndex);
+      return index;
+    }
+
+    function loadTrack(index) {
+      audioPlayer.src = audioFiles[index].src;
+      localStorage.setItem("lastTrackIndex", index);
+      audioPlayer.load();
+      audioPlayer.play().catch(() => {
+        // Autoplay might be blocked — user needs to interact
+      });
+      playIcon.style.display = "none";
+      pauseIcon.style.display = "block";
+    }
+
+    function togglePlayPause() {
+      if (audioPlayer.paused) {
+        audioPlayer.play();
+        playIcon.style.display = "none";
+        pauseIcon.style.display = "block";
+      } else {
+        audioPlayer.pause();
+        playIcon.style.display = "block";
+        pauseIcon.style.display = "none";
+      }
+    }
+
+    function shuffleTrack() {
+      const lastIndex = parseInt(localStorage.getItem("lastTrackIndex"));
+      const newIndex = getRandomIndex(isNaN(lastIndex) ? -1 : lastIndex);
+      loadTrack(newIndex);
+    }
+
+    audioPlayer.addEventListener("ended", shuffleTrack);
+
+    playPauseBtn.addEventListener("click", togglePlayPause);
+    shuffleBtn.addEventListener("click", shuffleTrack);
+
+    window.addEventListener("load", () => {
+      const lastIndex = parseInt(localStorage.getItem("lastTrackIndex"));
+      const startIndex = getRandomIndex(isNaN(lastIndex) ? -1 : lastIndex);
+      loadTrack(startIndex);
+    });
+  </script>
 </body>
 </html>
