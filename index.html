@@ -36,48 +36,111 @@
     font-size: 0.8em;
   }
 
-  /* Custom audio player styles */
+  /* guns.lol clone audio player UI exactly like before */
   .audio-player {
     display: flex;
     align-items: center;
     gap: 15px;
-    background: #222;
-    padding: 10px 15px;
-    border-radius: 40px;
-    width: fit-content;
-    box-shadow: 0 0 8px white; /* changed green glow to white */
+    background: linear-gradient(145deg, #1e1e1e, #0a0a0a);
+    border-radius: 25px;
+    padding: 16px 28px;
+    max-width: 600px;
+    width: 90vw;
+    box-shadow: 0 0 40px rgba(255 255 255 / 0.05);
   }
-
-  .play-btn, .shuffle-btn {
-    cursor: pointer;
-    background: white; /* changed from green to white */
-    border: none;
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
+  .player-icon {
+    border-radius: 20px;
+    background: #1c1c1c;
+    padding: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(255 255 255 / 0.1);
+    filter: drop-shadow(0 0 3px white);
+    width: 44px;
+    height: 44px;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #111;
-    font-size: 20px;
-    transition: background 0.3s, box-shadow 0.3s;
-    box-shadow:
-      0 0 8px white;
   }
-
-  .play-btn:hover, .shuffle-btn:hover {
-    background: #eee;
+  .player-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: currentColor;
+  }
+  .info {
+    flex-grow: 1;
+    user-select: text;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .song-title {
+    font-weight: 600;
+    font-size: 17px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .progress-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    opacity: 0.7;
+    user-select: none;
+  }
+  .progress-bar {
+    flex-grow: 1;
+    height: 6px;
+    border-radius: 999px;
+    background-color: #2a2a2a;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: inset 0 0 5px rgba(255 255 255 / 0.15);
+  }
+  .progress-fill {
+    background: white;
+    width: 0%;
+    height: 100%;
+    border-radius: 999px 0 0 999px;
     box-shadow:
+      0 0 6px white,
+      0 0 10px white,
       0 0 15px white;
+    transition: width 0.2s linear;
   }
-
-  .play-btn svg {
+  .controls {
+    display: flex;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+  .controls button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+    filter: drop-shadow(0 0 3px white);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+  }
+  .controls button:hover,
+  .controls button:focus {
+    outline: none;
+    transform: scale(1.2);
+  }
+  .controls svg {
+    width: 28px;
+    height: 28px;
+    fill: currentColor;
     pointer-events: none;
   }
-
-  .shuffle-btn {
-    font-size: 22px;
-    user-select: none;
+  .controls button.play svg {
+    width: 32px;
+    height: 32px;
   }
 </style>
 </head>
@@ -94,51 +157,84 @@
   </div>
   <canvas id="canvas" width="512" height="512"></canvas>
 
-  <!-- Custom audio player UI -->
+  <!-- guns.lol styled audio player -->
   <div class="audio-player" role="region" aria-label="Audio Player">
-    <button id="playPauseBtn" class="play-btn" aria-label="Play/Pause" type="button">
-      <svg id="playIcon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+    <div class="player-icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="m12.75 12.508l8.5-3.4v5.653a3.25 3.25 0 1 0 1.5 2.74V7.945c0-1.143 0-2.101-.08-2.865a8 8 0 0 0-.04-.315c-.078-.522-.214-1.008-.479-1.415a2.2 2.2 0 0 0-.62-.63l-.007-.005c-.708-.47-1.503-.437-2.322-.228c-.792.202-1.774.613-2.978 1.117l-2.094.876c-.565.236-1.043.437-1.418.644c-.4.22-.743.48-1.001.868s-.366.805-.415 1.259c-.046.426-.046.945-.046 1.557v7.952a3.25 3.25 0 1 0 1.5 2.74zM7.75 2a.75.75 0 0 0-1.5 0v5.76a3.25 3.25 0 1 0 1.5 2.74V5.005c.699.504 1.53.745 2.25.745a.75.75 0 0 0 0-1.5a2.44 2.44 0 0 1-1.488-.552c-.434-.357-.762-.9-.762-1.698"/>
       </svg>
-      <svg id="pauseIcon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-        <rect x="6" y="4" width="4" height="16"></rect>
-        <rect x="14" y="4" width="4" height="16"></rect>
-      </svg>
-    </button>
-    <button id="prevBtn" class="shuffle-btn" aria-label="Previous Track" type="button">⏮️</button>
-    <button id="shuffleBtn" class="shuffle-btn" aria-label="Shuffle" type="button">🔀</button>
-    <button id="nextBtn" class="shuffle-btn" aria-label="Next Track" type="button">⏭️</button>
+    </div>
+    <div class="info">
+      <h1 class="song-title" id="song-title">7 Weeks &amp; 3 Days</h1>
+      <div class="progress-container" aria-label="Audio progress">
+        <span id="current-time">0:00</span>
+        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="274" aria-valuenow="0" tabindex="0" aria-describedby="song-title">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <span id="duration">4:34</span>
+      </div>
+    </div>
+    <div class="controls" role="group" aria-label="Playback controls">
+      <button aria-label="Previous Track" id="prev-btn" type="button" tabindex="0">
+        <svg viewBox="0 0 24 24" >
+          <path d="M7 6c.55 0 1 .45 1 1v10c0 .55-.45 1-1 1s-1-.45-1-1V7c0-.55.45-1 1-1m3.66 6.82l5.77 4.07c.66.47 1.58-.01 1.58-.82V7.93c0-.81-.91-1.28-1.58-.82l-5.77 4.07a1 1 0 0 0 0 1.64"/>
+        </svg>
+      </button>
+      <button aria-label="Play" id="play-btn" class="play" type="button" tabindex="0">
+        <svg viewBox="0 0 24 24" >
+          <path id="play-icon" d="M8 17.175V6.825q0-.425.3-.713t.7-.287q.125 0 .263.037t.262.113l8.15 5.175q.225.15.338.375t.112.475t-.112.475t-.338.375l-8.15 5.175q-.125.075-.262.113T9 18.175q-.4 0-.7-.288t-.3-.712"/>
+          <path id="pause-icon" style="display:none;" d="M6 6h4v12H6zm8 0h4v12h-4z"/>
+        </svg>
+      </button>
+      <button aria-label="Next Track" id="next-btn" type="button" tabindex="0">
+        <svg viewBox="0 0 24 24" >
+          <path d="m7.58 16.89l5.77-4.07c.56-.4.56-1.24 0-1.63L7.58 7.11C6.91 6.65 6 7.12 6 7.93v8.14c0 .81.91 1.28 1.58.82M16 7v10c0 .55.45 1 1 1s1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <audio id="audioPlayer"></audio>
 
   <script>
     const audioFiles = [
-      { src: "audio/audio1.mp3", name: "Track 1" },
-      { src: "audio/audio2.mp3", name: "Track 2" },
-      { src: "audio/audio3.mp3", name: "Track 3" },
-      { src: "audio/audio4.mp3", name: "Track 4" },
+      { src: "audio/audio1.mp3", name: "Track 1", duration: 274 },
+      { src: "audio/audio2.mp3", name: "Track 2", duration: 210 },
+      { src: "audio/audio3.mp3", name: "Track 3", duration: 198 },
+      { src: "audio/audio4.mp3", name: "Track 4", duration: 240 },
     ];
 
     const audioPlayer = document.getElementById("audioPlayer");
-    const playPauseBtn = document.getElementById("playPauseBtn");
-    const playIcon = document.getElementById("playIcon");
-    const pauseIcon = document.getElementById("pauseIcon");
-    const shuffleBtn = document.getElementById("shuffleBtn");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
+    const playBtn = document.getElementById("play-btn");
+    const playIcon = document.getElementById("play-icon");
+    const pauseIcon = document.getElementById("pause-icon");
+    const progressFill = document.getElementById("progress-fill");
+    const currentTimeElem = document.getElementById("current-time");
+    const durationElem = document.getElementById("duration");
+    const songTitleElem = document.getElementById("song-title");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
 
     let currentTrackIndex = 0;
+    let updateInterval;
+
+    function secondsToMMSS(s) {
+      const m = Math.floor(s / 60);
+      const ss = s % 60;
+      return `${m}:${ss.toString().padStart(2, "0")}`;
+    }
 
     function loadTrack(index) {
       currentTrackIndex = index;
-      audioPlayer.src = audioFiles[index].src;
+      const track = audioFiles[index];
+      audioPlayer.src = track.src;
+      songTitleElem.textContent = track.name;
+      durationElem.textContent = secondsToMMSS(track.duration);
       audioPlayer.load();
-      audioPlayer.play().catch(() => {
-        // Autoplay might be blocked — user needs to interact
-      });
-      updatePlayPauseIcon(true);
-      localStorage.setItem("lastTrackIndex", index);
+      updateProgress(0, track.duration);
+      clearInterval(updateInterval);
+      audioPlayer.pause();
+      updatePlayPauseIcon(false);
     }
 
     function updatePlayPauseIcon(isPlaying) {
@@ -151,49 +247,75 @@
       }
     }
 
+    function updateProgress(current, duration) {
+      const percent = (current / duration) * 100;
+      progressFill.style.width = percent + "%";
+      currentTimeElem.textContent = secondsToMMSS(Math.floor(current));
+    }
+
+    function playTrack() {
+      audioPlayer.play();
+      updatePlayPauseIcon(true);
+      updateInterval = setInterval(() => {
+        updateProgress(audioPlayer.currentTime, audioFiles[currentTrackIndex].duration);
+      }, 500);
+    }
+
+    function pauseTrack() {
+      audioPlayer.pause();
+      updatePlayPauseIcon(false);
+      clearInterval(updateInterval);
+    }
+
     function togglePlayPause() {
       if (audioPlayer.paused) {
-        audioPlayer.play();
-        updatePlayPauseIcon(true);
+        playTrack();
       } else {
-        audioPlayer.pause();
-        updatePlayPauseIcon(false);
+        pauseTrack();
       }
     }
 
-    function playNext() {
-      let nextIndex = (currentTrackIndex + 1) % audioFiles.length;
-      loadTrack(nextIndex);
-    }
+    playBtn.addEventListener("click", togglePlayPause);
 
-    function playPrev() {
-      let prevIndex = (currentTrackIndex - 1 + audioFiles.length) % audioFiles.length;
-      loadTrack(prevIndex);
-    }
+    prevBtn.addEventListener("click", () => {
+      currentTrackIndex = (currentTrackIndex - 1 + audioFiles.length) % audioFiles.length;
+      loadTrack(currentTrackIndex);
+      playTrack();
+    });
 
-    function shuffleTrack() {
-      let newIndex;
-      do {
-        newIndex = Math.floor(Math.random() * audioFiles.length);
-      } while (newIndex === currentTrackIndex);
-      loadTrack(newIndex);
-    }
+    nextBtn.addEventListener("click", () => {
+      currentTrackIndex = (currentTrackIndex + 1) % audioFiles.length;
+      loadTrack(currentTrackIndex);
+      playTrack();
+    });
 
-    // Event listeners
-    playPauseBtn.addEventListener("click", togglePlayPause);
-    shuffleBtn.addEventListener("click", shuffleTrack);
-    prevBtn.addEventListener("click", playPrev);
-    nextBtn.addEventListener("click", playNext);
+    audioPlayer.addEventListener("ended", () => {
+      nextBtn.click();
+    });
 
-    audioPlayer.addEventListener("ended", playNext);
+    // Progress bar click to seek
+    const progressBar = document.querySelector(".progress-bar");
+    progressBar.addEventListener("click", e => {
+      const rect = progressBar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = clickX / rect.width;
+      const seekTime = percent * audioFiles[currentTrackIndex].duration;
+      audioPlayer.currentTime = seekTime;
+      updateProgress(seekTime, audioFiles[currentTrackIndex].duration);
+    });
 
-    // Load last played track or random on page load
+    // Load initial track
     window.addEventListener("load", () => {
       let savedIndex = parseInt(localStorage.getItem("lastTrackIndex"));
       if (isNaN(savedIndex) || savedIndex < 0 || savedIndex >= audioFiles.length) {
-        savedIndex = Math.floor(Math.random() * audioFiles.length);
+        savedIndex = 0;
       }
       loadTrack(savedIndex);
+    });
+
+    // Save current track index on change
+    audioPlayer.addEventListener("play", () => {
+      localStorage.setItem("lastTrackIndex", currentTrackIndex);
     });
   </script>
 
