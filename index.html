@@ -45,12 +45,12 @@
     padding: 10px 15px;
     border-radius: 40px;
     width: fit-content;
-    box-shadow: 0 0 8px #00ff99aa;
+    box-shadow: 0 0 8px white; /* changed green glow to white */
   }
 
   .play-btn, .shuffle-btn {
     cursor: pointer;
-    background: #00ff99;
+    background: white; /* changed from green to white */
     border: none;
     border-radius: 50%;
     width: 48px;
@@ -60,11 +60,15 @@
     align-items: center;
     color: #111;
     font-size: 20px;
-    transition: background 0.3s;
+    transition: background 0.3s, box-shadow 0.3s;
+    box-shadow:
+      0 0 8px white;
   }
 
   .play-btn:hover, .shuffle-btn:hover {
-    background: #00cc77;
+    background: #eee;
+    box-shadow:
+      0 0 15px white;
   }
 
   .play-btn svg {
@@ -91,8 +95,8 @@
   <canvas id="canvas" width="512" height="512"></canvas>
 
   <!-- Custom audio player UI -->
-  <div class="audio-player">
-    <button id="playPauseBtn" class="play-btn" aria-label="Play/Pause">
+  <div class="audio-player" role="region" aria-label="Audio Player">
+    <button id="playPauseBtn" class="play-btn" aria-label="Play/Pause" type="button">
       <svg id="playIcon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="5 3 19 12 5 21 5 3"></polygon>
       </svg>
@@ -101,15 +105,13 @@
         <rect x="14" y="4" width="4" height="16"></rect>
       </svg>
     </button>
-    <button id="shuffleBtn" class="shuffle-btn" title="Shuffle">🔀</button>
+    <button id="prevBtn" class="shuffle-btn" aria-label="Previous Track" type="button">⏮️</button>
+    <button id="shuffleBtn" class="shuffle-btn" aria-label="Shuffle" type="button">🔀</button>
+    <button id="nextBtn" class="shuffle-btn" aria-label="Next Track" type="button">⏭️</button>
   </div>
+
   <audio id="audioPlayer"></audio>
 
-  <script src="https://unpkg.com/gifuct-js/dist/gifuct.min.js"></script>
-  <script src="script.js"></script>
-  <script src="oneko.js"></script>
-
-  <!-- Inline audio-shuffle.js script -->
   <script>
     const audioFiles = [
       { src: "audio/audio1.mp3", name: "Track 1" },
@@ -123,54 +125,80 @@
     const playIcon = document.getElementById("playIcon");
     const pauseIcon = document.getElementById("pauseIcon");
     const shuffleBtn = document.getElementById("shuffleBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
 
-    function getRandomIndex(excludeIndex) {
-      let index;
-      do {
-        index = Math.floor(Math.random() * audioFiles.length);
-      } while (index === excludeIndex);
-      return index;
-    }
+    let currentTrackIndex = 0;
 
     function loadTrack(index) {
+      currentTrackIndex = index;
       audioPlayer.src = audioFiles[index].src;
-      localStorage.setItem("lastTrackIndex", index);
       audioPlayer.load();
       audioPlayer.play().catch(() => {
         // Autoplay might be blocked — user needs to interact
       });
-      playIcon.style.display = "none";
-      pauseIcon.style.display = "block";
+      updatePlayPauseIcon(true);
+      localStorage.setItem("lastTrackIndex", index);
     }
 
-    function togglePlayPause() {
-      if (audioPlayer.paused) {
-        audioPlayer.play();
+    function updatePlayPauseIcon(isPlaying) {
+      if (isPlaying) {
         playIcon.style.display = "none";
         pauseIcon.style.display = "block";
       } else {
-        audioPlayer.pause();
         playIcon.style.display = "block";
         pauseIcon.style.display = "none";
       }
     }
 
+    function togglePlayPause() {
+      if (audioPlayer.paused) {
+        audioPlayer.play();
+        updatePlayPauseIcon(true);
+      } else {
+        audioPlayer.pause();
+        updatePlayPauseIcon(false);
+      }
+    }
+
+    function playNext() {
+      let nextIndex = (currentTrackIndex + 1) % audioFiles.length;
+      loadTrack(nextIndex);
+    }
+
+    function playPrev() {
+      let prevIndex = (currentTrackIndex - 1 + audioFiles.length) % audioFiles.length;
+      loadTrack(prevIndex);
+    }
+
     function shuffleTrack() {
-      const lastIndex = parseInt(localStorage.getItem("lastTrackIndex"));
-      const newIndex = getRandomIndex(isNaN(lastIndex) ? -1 : lastIndex);
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * audioFiles.length);
+      } while (newIndex === currentTrackIndex);
       loadTrack(newIndex);
     }
 
-    audioPlayer.addEventListener("ended", shuffleTrack);
-
+    // Event listeners
     playPauseBtn.addEventListener("click", togglePlayPause);
     shuffleBtn.addEventListener("click", shuffleTrack);
+    prevBtn.addEventListener("click", playPrev);
+    nextBtn.addEventListener("click", playNext);
 
+    audioPlayer.addEventListener("ended", playNext);
+
+    // Load last played track or random on page load
     window.addEventListener("load", () => {
-      const lastIndex = parseInt(localStorage.getItem("lastTrackIndex"));
-      const startIndex = getRandomIndex(isNaN(lastIndex) ? -1 : lastIndex);
-      loadTrack(startIndex);
+      let savedIndex = parseInt(localStorage.getItem("lastTrackIndex"));
+      if (isNaN(savedIndex) || savedIndex < 0 || savedIndex >= audioFiles.length) {
+        savedIndex = Math.floor(Math.random() * audioFiles.length);
+      }
+      loadTrack(savedIndex);
     });
   </script>
+
+  <!-- Your original external scripts -->
+  <script src="script.js"></script>
+  <script src="oneko.js"></script>
 </body>
 </html>
