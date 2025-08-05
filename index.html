@@ -193,134 +193,13 @@
       </button>
     </div>
   </div>
-
+  
   <audio id="audioPlayer"></audio>
-
-  <script>
-    const audioFiles = [
-      { src: "audio/audio1.mp3", name: "Track 1", duration: 274 },
-      { src: "audio/audio2.mp3", name: "Track 2", duration: 210 },
-      { src: "audio/audio3.mp3", name: "Track 3", duration: 198 },
-      { src: "audio/audio4.mp3", name: "Track 4", duration: 240 },
-    ];
-
-    const audioPlayer = document.getElementById("audioPlayer");
-    const playBtn = document.getElementById("play-btn");
-    const playIcon = document.getElementById("play-icon");
-    const pauseIcon = document.getElementById("pause-icon");
-    const progressFill = document.getElementById("progress-fill");
-    const currentTimeElem = document.getElementById("current-time");
-    const durationElem = document.getElementById("duration");
-    const songTitleElem = document.getElementById("song-title");
-    const prevBtn = document.getElementById("prev-btn");
-    const nextBtn = document.getElementById("next-btn");
-
-    let currentTrackIndex = 0;
-    let updateInterval;
-
-    function secondsToMMSS(s) {
-      const m = Math.floor(s / 60);
-      const ss = s % 60;
-      return `${m}:${ss.toString().padStart(2, "0")}`;
-    }
-
-    function loadTrack(index) {
-      currentTrackIndex = index;
-      const track = audioFiles[index];
-      audioPlayer.src = track.src;
-      songTitleElem.textContent = track.name;
-      durationElem.textContent = secondsToMMSS(track.duration);
-      audioPlayer.load();
-      updateProgress(0, track.duration);
-      clearInterval(updateInterval);
-      audioPlayer.pause();
-      updatePlayPauseIcon(false);
-    }
-
-    function updatePlayPauseIcon(isPlaying) {
-      if (isPlaying) {
-        playIcon.style.display = "none";
-        pauseIcon.style.display = "block";
-      } else {
-        playIcon.style.display = "block";
-        pauseIcon.style.display = "none";
-      }
-    }
-
-    function updateProgress(current, duration) {
-      const percent = (current / duration) * 100;
-      progressFill.style.width = percent + "%";
-      currentTimeElem.textContent = secondsToMMSS(Math.floor(current));
-    }
-
-    function playTrack() {
-      audioPlayer.play();
-      updatePlayPauseIcon(true);
-      updateInterval = setInterval(() => {
-        updateProgress(audioPlayer.currentTime, audioFiles[currentTrackIndex].duration);
-      }, 500);
-    }
-
-    function pauseTrack() {
-      audioPlayer.pause();
-      updatePlayPauseIcon(false);
-      clearInterval(updateInterval);
-    }
-
-    function togglePlayPause() {
-      if (audioPlayer.paused) {
-        playTrack();
-      } else {
-        pauseTrack();
-      }
-    }
-
-    playBtn.addEventListener("click", togglePlayPause);
-
-    prevBtn.addEventListener("click", () => {
-      currentTrackIndex = (currentTrackIndex - 1 + audioFiles.length) % audioFiles.length;
-      loadTrack(currentTrackIndex);
-      playTrack();
-    });
-
-    nextBtn.addEventListener("click", () => {
-      currentTrackIndex = (currentTrackIndex + 1) % audioFiles.length;
-      loadTrack(currentTrackIndex);
-      playTrack();
-    });
-
-    audioPlayer.addEventListener("ended", () => {
-      nextBtn.click();
-    });
-
-    // Progress bar click to seek
-    const progressBar = document.querySelector(".progress-bar");
-    progressBar.addEventListener("click", e => {
-      const rect = progressBar.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const percent = clickX / rect.width;
-      const seekTime = percent * audioFiles[currentTrackIndex].duration;
-      audioPlayer.currentTime = seekTime;
-      updateProgress(seekTime, audioFiles[currentTrackIndex].duration);
-    });
-
-    // Load initial track
-    window.addEventListener("load", () => {
-      let savedIndex = parseInt(localStorage.getItem("lastTrackIndex"));
-      if (isNaN(savedIndex) || savedIndex < 0 || savedIndex >= audioFiles.length) {
-        savedIndex = 0;
-      }
-      loadTrack(savedIndex);
-    });
-
-    // Save current track index on change
-    audioPlayer.addEventListener("play", () => {
-      localStorage.setItem("lastTrackIndex", currentTrackIndex);
-    });
-  </script>
 
   <!-- Your original external scripts -->
   <script src="script.js"></script>
   <script src="oneko.js"></script>
+  <script src="player.js"></script>
+
 </body>
 </html>
